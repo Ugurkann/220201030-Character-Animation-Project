@@ -1,0 +1,88 @@
+Character Plugin Loader Debug Report
+====================================
+
+Build
+-----
+Configuration: Visual Studio 2022 generator, x64, Release, MSVC v143 toolset.
+DLL: C:\Users\ugurk\Documents\CharacterProject\out\character_plugin_ugurkan.dll
+
+Debug Instrumentation
+---------------------
+The DLL now emits OutputDebugStringA traces and appends matching text to:
+
+C:\N8RO\userPlugins\sim\character_plugin_debug.log
+
+The log message format is:
+
+[character_plugin_ugurkan] pid=<process> tid=<thread> <function> <entry-or-exit>
+
+The following functions are traced:
+
+- DllMain
+- get_plugin_signature
+- create_plugin
+- destroy_plugin
+- plugin_tick
+- arkheon_character_sdk_version
+- arkheon_character_plugin_name
+- arkheon_character_get_motion_clips
+- arkheon_character_create
+- arkheon_character_destroy
+- arkheon_character_tick
+
+ABI and Calling Convention
+--------------------------
+All exported plugin functions are declared inside an extern "C" block.
+The Arkheon SDK header uses __declspec(dllexport) without an explicit __stdcall or __cdecl annotation.
+On Windows x64, the exported functions therefore use the standard Microsoft x64 calling convention.
+The dumpbin export table confirms undecorated C export names.
+
+Observed Loader Interpretation
+------------------------------
+The old N8RO log reported:
+
+Loading plugin
+Plugin signature validation failed
+
+After adding the generic exports get_plugin_signature, create_plugin, destroy_plugin, and plugin_tick with
+get_plugin_signature returning ARKHEON_PLUGIN_V1, the log changed to:
+
+Loading plugin
+
+That strongly suggests the initial string-signature check is now passing. The loader likely proceeds to a second validation
+stage and then either blocks, calls an unexpected function shape, or silently rejects a later contract.
+
+Likely Expectations Beyond ARKHEON_PLUGIN_V1
+--------------------------------------------
+Based on the changed log behavior, the loader is probably expecting one of these additional contracts:
+
+1. A specific return object from create_plugin, not just an opaque marker handle. Many plugin systems expect create_plugin
+   to return a host-defined vtable, descriptor, or interface pointer.
+
+2. A plugin descriptor or metadata block containing plugin type, UUID, API version, name, author, and callback table.
+   If N8RO performs a second descriptor validation after the signature string, our current generic shim may be too small.
+
+3. Different generic function prototypes for create_plugin, destroy_plugin, or plugin_tick. The symbols are undecorated,
+   but if the loader calls them with parameters not represented in this shim, the call can fail without producing the
+   previous signature error.
+
+4. A plugin type discriminator that identifies the DLL as a character plugin. The official Arkheon character ABI exports
+   are still present, but the generic N8RO loader may require the generic plugin interface to advertise that it wraps a
+   character controller.
+
+5. A UUID or manifest associated with the plugin. No manifest or UUID requirement is present in the generated SDK header,
+   but the loader's second stage may be outside the Section 5 character ABI.
+
+Debugging Next Step
+-------------------
+Run N8RO with this DLL and inspect either DebugView/Visual Studio Output window or:
+
+C:\N8RO\userPlugins\sim\character_plugin_debug.log
+
+The last logged line identifies where the loader stops:
+
+- DllMain entry without DllMain exit means the loader is blocking during DLL attach.
+- get_plugin_signature entry/exit only means signature passed but create_plugin was not called.
+- create_plugin entry without exit means allocation or function call convention mismatch.
+- create_plugin exit followed by no plugin_tick or Arkheon calls means the returned object shape is probably wrong.
+- arkheon_character_create/tick entries mean N8RO reached the official character ABI.

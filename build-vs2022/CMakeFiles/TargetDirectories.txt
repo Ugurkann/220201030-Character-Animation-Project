@@ -1,0 +1,4 @@
+C:/Users/ugurk/Documents/CharacterProject/build-vs2022/CMakeFiles/CharacterProject.dir
+C:/Users/ugurk/Documents/CharacterProject/build-vs2022/CMakeFiles/CharacterProjectTest.dir
+C:/Users/ugurk/Documents/CharacterProject/build-vs2022/CMakeFiles/ALL_BUILD.dir
+C:/Users/ugurk/Documents/CharacterProject/build-vs2022/CMakeFiles/ZERO_CHECK.dir

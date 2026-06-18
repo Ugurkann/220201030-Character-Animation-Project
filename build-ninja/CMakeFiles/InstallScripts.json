@@ -1,0 +1,11 @@
+{
+	"Configs" : 
+	[
+		"Debug"
+	],
+	"InstallScripts" : 
+	[
+		"C:/Users/ugurk/Documents/CharacterProject/build-ninja/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
