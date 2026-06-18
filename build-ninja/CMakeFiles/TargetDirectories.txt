@@ -1,3 +1,0 @@
-C:/Users/ugurk/Documents/CharacterProject/build-ninja/CMakeFiles/CharacterProject.dir
-C:/Users/ugurk/Documents/CharacterProject/build-ninja/CMakeFiles/edit_cache.dir
-C:/Users/ugurk/Documents/CharacterProject/build-ninja/CMakeFiles/rebuild_cache.dir
